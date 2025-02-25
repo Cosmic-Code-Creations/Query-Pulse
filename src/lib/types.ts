@@ -30,3 +30,21 @@ export interface QueryState<T = unknown, E = unknown> {
  * A store that maps query keys to their respective state.
  */
 export type QueryStore = { [key: string]: QueryState };
+
+/**
+ * A simple cache plugin interface.
+ */
+export interface CachePlugin {
+    /**
+     * Retrieves cached data for a given key.
+     */
+    get<T = unknown>(key: string): T | undefined;
+    /**
+     * Stores data in the cache under the given key.
+     */
+    set<T = unknown>(key: string, value: T): void;
+    /**
+     * Deletes a cache entry by key.
+     */
+    delete(key: string): void;
+}
