@@ -2,7 +2,7 @@
   "name": "query-pulse",
   "displayName": "Query Pulse",
   "description": "A lightweight state management library for React that simplifies asynchronous data fetching and query state handling using an intuitive hook-based API.",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "license": "MIT",
   "repository": {
     "type": "git",
