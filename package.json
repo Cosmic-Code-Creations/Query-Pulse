@@ -6,11 +6,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-<<<<<<< HEAD
-    "url": "https://github.com/Cosmic-Code-Creations/Statement"
-=======
     "url": "https://github.com/Cosmic-Code-Creations/query-pulse"
->>>>>>> dev
   },
   "author": "David Wagner <20711387+Dave-Wagner@users.noreply.github.com>",
   "type": "module",
