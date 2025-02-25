@@ -6,13 +6,24 @@ import {
     useEffect,
     useCallback,
 } from "react";
-import { QueryStore } from "./types";
+import { QueryStore, CachePlugin } from "./types";
+
+/**
+ * Props for the QueryProvider component.
+ *
+ * @property children - The child React nodes that will have access to the query context.
+ * @property cache - An optional caching plugin used to store and retrieve query data.
+ */
+interface QueryProviderProps {
+    children: ReactNode;
+    cache?: CachePlugin;
+}
 
 /**
  * The shape of the context value for query state management.
  *
- * @property queryStore - A mapping of query keys to their state.
- * @property fetchData - A function to trigger data fetching for a given query key.
+ * @remarks
+ * Provides the current query store state and a function to asynchronously fetch data.
  */
 const QueryContext = createContext<
     | {
@@ -20,8 +31,8 @@ const QueryContext = createContext<
         /**
          * Initiates an asynchronous fetch for the specified query key and updates the query state.
          *
-         * @param key - Unique identifier for the query.
-         * @param fetchFn - Asynchronous function that returns an object with a `data` property.
+         * @param key - The unique key representing the query.
+         * @param fetchFn - A function returning a promise that resolves with an object containing the data.
          */
         fetchData: (key: string, fetchFn: () => Promise<{ data: unknown }>) => void;
     }
@@ -29,57 +40,74 @@ const QueryContext = createContext<
 >(undefined);
 
 /**
- * QueryProvider component that supplies query state management to its children.
+ * Provides a React context for managing asynchronous query state.
  *
- * This component maintains a global store of query states (idle, loading, success, error)
- * and provides a memoized `fetchData` function that updates the store accordingly.
- * It leverages a ref to always access the most up-to-date store state, thereby avoiding
- * potential race conditions with asynchronous fetch calls.
+ * @remarks
+ * This provider manages a store of queries, tracks their fetch status, caches data if a cache plugin is provided,
+ * and exposes a `fetchData` function to initiate data fetching. It uses React hooks to update and persist state.
  *
- * @param children - Child components that require access to query state.
- * @returns A React element that wraps its children with the QueryContext provider.
+ * @param props - The properties for the provider including child nodes and an optional cache.
+ * @returns A React context provider that wraps its children with query state management.
  */
-const QueryProvider = ({ children }: { children: ReactNode }) => {
-    // Local state holding the mapping of query keys to their states.
+const QueryProvider = ({ children, cache }: QueryProviderProps) => {
+    // Initialize the query store state as an empty object.
     const [queryStore, setQueryStore] = useState<QueryStore>({});
-
-    // A ref to hold the latest queryStore value to avoid stale closures in async callbacks.
+    // Use a ref to persist the current query store across renders.
     const queryStoreRef = useRef(queryStore);
 
-    // Update the ref whenever queryStore changes.
+    // Sync the ref with the current query store whenever it updates.
     useEffect(() => {
         queryStoreRef.current = queryStore;
     }, [queryStore]);
 
     /**
-     * Memoized function to fetch data for a given query key.
+     * Initiates an asynchronous fetch for the specified query key.
      *
-     * It first checks if a fetch is already in progress for the given key by reading from the ref.
-     * If not, it sets the query state to loading, then executes the provided fetch function.
-     * Upon success or error, it updates the query store accordingly.
+     * @remarks
+     * Checks if a fetch is already in progress for the key. If a cache is available and contains data,
+     * it uses that data to update the state immediately. Otherwise, it sets the state to loading,
+     * performs the fetch, updates the cache if available, and sets the final state based on success or error.
      *
-     * @param key - Unique identifier for the query.
-     * @param fetchFn - Asynchronous function that returns data.
+     * @param key - The unique key representing the query.
+     * @param fetchFn - A function returning a promise that resolves with an object containing the fetched data.
      */
     const fetchData = useCallback(
         async (key: string, fetchFn: () => Promise<{ data: unknown }>) => {
-            // If a fetch is already in progress for this key, exit early.
+            // Exit early if a fetch is already in progress for this key.
             if (queryStoreRef.current[key]?.isFetching) {
                 return;
             }
 
-            // Update the state to indicate that the query is loading.
+            // If a cache is provided and no data exists for the key, attempt to retrieve cached data.
+            if (cache && !queryStoreRef.current[key]) {
+                const cachedData = cache.get(key);
+                if (cachedData !== undefined) {
+                    // Update the store with cached data and mark the fetch as not in progress.
+                    setQueryStore((prevStore) => ({
+                        ...prevStore,
+                        [key]: {
+                            status: "success",
+                            data: cachedData,
+                            isFetching: false,
+                            refetch: () => fetchData(key, fetchFn),
+                        },
+                    }));
+                    // Optionally, you might trigger a background revalidation here.
+                }
+            }
+
+            // Update the query store to indicate that the fetch for this key is in progress.
             setQueryStore((prevStore) => {
                 const newStore = { ...prevStore };
                 if (!newStore[key]) {
-                    // If no state exists for this key, create a new one.
+                    // If the key is not already in the store, initialize its state.
                     newStore[key] = {
                         status: "loading",
                         isFetching: true,
                         refetch: () => fetchData(key, fetchFn),
                     };
                 } else {
-                    // Otherwise, just mark it as fetching.
+                    // If the key exists, simply mark it as fetching.
                     newStore[key].isFetching = true;
                 }
                 return newStore;
@@ -88,7 +116,12 @@ const QueryProvider = ({ children }: { children: ReactNode }) => {
             try {
                 // Execute the provided fetch function.
                 const { data } = await fetchFn();
-                // Update the state to reflect successful fetch.
+
+                // On successful fetch, update the cache if available.
+                if (cache) {
+                    cache.set(key, data);
+                }
+                // Update the query store with the successful data and mark fetching as complete.
                 setQueryStore((prevStore) => {
                     const newStore = { ...prevStore };
                     newStore[key] = {
@@ -100,7 +133,7 @@ const QueryProvider = ({ children }: { children: ReactNode }) => {
                     return newStore;
                 });
             } catch (error) {
-                // On error, update the state with error information.
+                // On error, update the query store with the error details.
                 setQueryStore((prevStore) => {
                     const newStore = { ...prevStore };
                     newStore[key] = {
@@ -113,9 +146,10 @@ const QueryProvider = ({ children }: { children: ReactNode }) => {
                 });
             }
         },
-        [setQueryStore]
+        [setQueryStore, cache]
     );
 
+    // Render the context provider with the query store and fetchData function as its value.
     return (
         <QueryContext.Provider value={{ queryStore, fetchData }}>
             {children}
