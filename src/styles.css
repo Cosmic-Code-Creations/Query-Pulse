@@ -1,0 +1,62 @@
+/* Base Styles */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f0fff0;
+    /* light, airy green */
+    color: #228b22;
+    /* forest green text */
+}
+
+/* Dashboard Layout */
+.dashboard {
+    padding: 20px;
+    max-width: 960px;
+    margin: 0 auto;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* Card Component */
+.card {
+    background-color: #fff;
+    border: 2px solid #228b22;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(34, 139, 34, 0.3);
+}
+
+.card h2 {
+    color: #006400;
+    /* darker forest green */
+}
+
+/* Buttons */
+button {
+    background-color: #228b22;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 10px;
+}
+
+button:hover {
+    background-color: #006400;
+}
+
+/* Lists */
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+li {
+    margin-bottom: 8px;
+}

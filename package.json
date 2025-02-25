@@ -1,0 +1,60 @@
+{
+  "name": "query-pulse",
+  "displayName": "Query Pulse",
+  "description": "A lightweight state management library for React that simplifies asynchronous data fetching and query state handling using an intuitive hook-based API.",
+  "version": "0.1.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+<<<<<<< HEAD
+    "url": "https://github.com/Cosmic-Code-Creations/Statement"
+=======
+    "url": "https://github.com/Cosmic-Code-Creations/query-pulse"
+>>>>>>> dev
+  },
+  "author": "David Wagner <20711387+Dave-Wagner@users.noreply.github.com>",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public",
+    "tag": "alpha"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -p tsconfig.lib.json && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "install": "^0.13.0",
+    "npm": "^11.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.19.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.2.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/node": "^22.13.5",
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.3",
+    "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^9.19.0",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "eslint-plugin-react-refresh": "^0.4.18",
+    "globals": "16.0.0",
+    "jsdom": "^26.0.0",
+    "typescript": "~5.7.2",
+    "typescript-eslint": "^8.22.0",
+    "vite": "^6.1.0",
+    "vitest": "^3.0.7"
+  }
+}
